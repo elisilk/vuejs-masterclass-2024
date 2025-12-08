@@ -1,18 +1,28 @@
 <script setup lang="ts">
-import TopNavbar from '@/components/Layout/TopNavbar.vue'
-import Sidebar from '@/components/Layout/Sidebar.vue'
+const { pageData } = storeToRefs(usePageStore())
+
+const taskSheetOpen = ref(false)
+
+const { menuOpen } = useMenu()
 </script>
 
 <template>
-  <Sidebar />
-  <div class="flex flex-col lg:ml-52 ml-16 transition-[margin]">
-    <TopNavbar />
+  <div>
+    <Sidebar @task-clicked="taskSheetOpen = true" />
+    <AppNewTask v-model="taskSheetOpen" />
 
-    <main class="flex flex-col flex-1 gap-4 p-4 lg:gap-6 lg:p-6">
-      <div class="flex items-center">
-        <h1 class="text-lg font-semibold md:text-2xl">Page Title</h1>
-      </div>
-      <slot />
-    </main>
+    <div
+      class="flex flex-col transition-[margin]"
+      :class="{ 'ml-52': menuOpen, 'ml-24': !menuOpen }"
+    >
+      <TopNavbar />
+
+      <main class="flex flex-col flex-1 gap-4 p-4 lg:gap-6 lg:p-6">
+        <div class="flex items-center">
+          <h1 class="text-lg font-semibold md:text-2xl">{{ pageData.title }}</h1>
+        </div>
+        <slot />
+      </main>
+    </div>
   </div>
 </template>

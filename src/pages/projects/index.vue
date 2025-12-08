@@ -1,59 +1,29 @@
 <script setup lang="ts">
-import { supabase } from '@/lib/supabaseClient'
-import { h, ref } from 'vue'
-import type { Tables } from '../../../database/types'
-import type { ColumnDef } from '@tanstack/vue-table'
-import DataTable from '@/components/ui/data-table/DataTable.vue'
-import { RouterLink } from 'vue-router'
+import { columns } from '@/utils/tableColumns/projectsColumns'
 
-const projects = ref<Tables<'projects'>[] | null>(null)
+usePageStore().pageData.title = 'Projects'
 
-;(async () => {
-  const { data, error } = await supabase.from('projects').select()
+const projectsLoader = useProjectsStore()
+const { projects } = storeToRefs(projectsLoader)
+const { getProjects } = projectsLoader
 
-  if (error) console.log(error)
+await getProjects()
 
-  projects.value = data
+const { groupedCollabs, getGroupedCollabs } = useCollabs()
 
-  console.log('Projects :', projects.value)
-})()
+getGroupedCollabs(projects.value ?? [])
 
-const columns: ColumnDef<Tables<'projects'>>[] = [
-  {
-    accessorKey: 'name',
-    header: () => h('div', { class: 'text-left' }, 'Name'),
-    cell: ({ row }) => {
-      return h(
-        RouterLink,
-        {
-          to: `/projects/${row.original.slug}`,
-          class: 'text-left font-medium hover:bg-muted block w-full',
-        },
-        () => row.getValue('name'),
-      )
-    },
+const columnsWithCollabs = columns(groupedCollabs)
+
+useMeta({
+  title: 'Projects | Pulse',
+  description: {
+    name: 'description',
+    content: 'Pulse is a ...',
   },
-  {
-    accessorKey: 'status',
-    header: () => h('div', { class: 'text-left' }, 'Status'),
-    cell: ({ row }) => {
-      return h('div', { class: 'text-left font-medium' }, row.getValue('status'))
-    },
-  },
-  {
-    accessorKey: 'collaborators',
-    header: () => h('div', { class: 'text-left' }, 'Collaborators'),
-    cell: ({ row }) => {
-      return h(
-        'div',
-        { class: 'text-left font-medium' },
-        JSON.stringify(row.getValue('collaborators')),
-      )
-    },
-  },
-]
+})
 </script>
 
 <template>
-  <DataTable v-if="projects" :columns="columns" :data="projects" />
+  <DataTable v-if="projects" :columns="columnsWithCollabs" :data="projects" />
 </template>
